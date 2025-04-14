@@ -1,0 +1,39 @@
+networks:
+  react_express:
+    driver: bridge
+
+services:
+  frontend:
+    build: .
+    container_name: front
+    tty: true
+    volumes:
+      - ../frontend:/frontend
+    working_dir: "/frontend"
+    command: sh -c "npm install && npm start"
+    ports:
+      - 3001:3000
+    networks:
+      - react_express
+  backend:
+    build: .
+    container_name: express-api
+    tty: true
+    volumes:
+      - ../backend:/backend
+    working_dir: "/backend"
+    command: sh -c "npm install && npm start"
+    ports:
+      - 3002:3000
+    networks:
+      - react_express
+  db:
+      image: mysql:8.0
+      container_name: mysql
+      environment:
+        MYSQL_DATABASE: ${MYSQL_DATABASE}
+        MYSQL_USER: ${MYSQL_USER}
+        MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+        MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      ports:
+        - "3306:3306"
