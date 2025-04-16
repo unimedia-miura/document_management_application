@@ -24,6 +24,7 @@ export const List = () => {
         <thead>
           <tr>
             <th className="px-4 py-2 border-b text-left text-sm font-medium text-gray-700">文書名</th>
+            <th className="px-4 py-2 border-b text-left text-sm font-medium text-gray-700">発送ステータス</th>
             <th className="px-4 py-2 border-b text-left text-sm font-medium text-gray-700">作成日</th>
 						<th className="px-4 py-2 border-b text-left text-sm font-medium text-gray-700">更新日</th>
           </tr>
@@ -36,6 +37,7 @@ export const List = () => {
                   {document.name}
                 </Link>
               </td>
+              <td className="px-4 py-2 border-b text-sm text-gray-800">未発送</td>
               <td className="px-4 py-2 border-b text-sm text-gray-800">{formatDate(document.createdAt)}</td>
 							<td className="px-4 py-2 border-b text-sm text-gray-800">{formatDate(document.updatedAt)}</td>
             </tr>

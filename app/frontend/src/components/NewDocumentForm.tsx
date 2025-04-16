@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 export const NewDocumentForm = () => {
 	const [name, setName] = useState('');
   const [content, setContent] = useState('');
+  const [shippingStatus, setShippingStatus] = useState(0);
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -59,6 +60,21 @@ export const NewDocumentForm = () => {
             rows={5}
             required
           />
+        </div>
+        <div>
+          <label htmlFor="content" className="block text-sm font-medium text-gray-700">
+            発送ステータス
+          </label>
+          <select
+            id="shippingStatus"
+            value={shippingStatus}
+            onChange={(e) => setShippingStatus(Number(e.target.value))}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+            <option value="0">未発送</option>
+            <option value="1">発送済み</option>
+            <option value="2">発送失敗</option>
+            <option value="3">発送保留</option>
+          </select>
         </div>
         <div>
           <button

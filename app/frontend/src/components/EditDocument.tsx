@@ -9,6 +9,7 @@ export const EditDocument = () => {
     id: 0,
     name: '',
     content: '',
+    shippingStatus: 0,
     createdAt: '',
     updatedAt: '',
   });
@@ -17,6 +18,7 @@ export const EditDocument = () => {
 		id: 1,
 		name: "Sample Document",
 		content: "This is a sample document",
+    shippingStatus: 0,
 		createdAt:  "2023-10-01",
 		updatedAt: "2023-10-01",
 }
@@ -75,6 +77,18 @@ export const EditDocument = () => {
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
             rows={5}
           />
+        </div>
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700">発送ステータス</label>
+          <select
+            value={document.shippingStatus}
+            onChange={(e) => setDocument({ ...document, shippingStatus: Number(e.target.value) })}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          >
+            <option value={0}>未発送</option>
+            <option value={1}>発送済み</option>
+            <option value={2}>配達完了</option>
+          </select>
         </div>
         <div className="flex space-x-4">
 					<button
