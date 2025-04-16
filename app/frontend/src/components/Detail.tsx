@@ -5,7 +5,7 @@ import { Document } from '../types/Document';
 
 const sampleDocument: Document = {
 		id: 1,
-		name: "Sample Document",
+		title: "Sample Document",
 		content: "This is a sample document",
 		shippingStatus: 0,
 		createdAt:  "2023-10-01",
@@ -45,7 +45,7 @@ export const Detail = () => {
 		<div className="container mx-auto p-4">
       <h1 className="text-xl font-bold mb-4">文書詳細</h1>
       <div className="bg-white shadow-md rounded-md p-6">
-        <h2 className="text-lg font-semibold mb-3">文書名: {document.name}</h2>
+        <h2 className="text-lg font-semibold mb-3">文書名: {document.title}</h2>
         <div className="mb-3">
           <p className="text-gray-700">内容: {document.content}</p>
         </div>

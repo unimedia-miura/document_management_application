@@ -7,7 +7,7 @@ export const List = () => {
   const [documents, setDocuments] = useState<Document[]>([]);
 
   useEffect(() => {
-    fetch('/list')
+    fetch('/documents')
       .then((res) => res.json())
       .then((data) => {
         setDocuments(data);
@@ -34,7 +34,7 @@ export const List = () => {
             <tr key={document.id} className="hover:bg-gray-100">
               <td className="px-4 py-2 border-b text-sm text-gray-800">
                 <Link to={`/document/${document.id}`} className="text-blue-500 hover:underline">
-                  {document.name}
+                  {document.title}
                 </Link>
               </td>
               <td className="px-4 py-2 border-b text-sm text-gray-800">未発送</td>

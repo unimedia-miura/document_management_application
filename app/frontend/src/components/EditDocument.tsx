@@ -7,7 +7,7 @@ export const EditDocument = () => {
   const navigate = useNavigate();
   const [document, setDocument] = useState<Document>({
     id: 0,
-    name: '',
+    title: '',
     content: '',
     shippingStatus: 0,
     createdAt: '',
@@ -16,7 +16,7 @@ export const EditDocument = () => {
 
 	const sampleDocument: Document = {
 		id: 1,
-		name: "Sample Document",
+		title: "Sample Document",
 		content: "This is a sample document",
     shippingStatus: 0,
 		createdAt:  "2023-10-01",
@@ -64,8 +64,8 @@ export const EditDocument = () => {
           <label className="block text-sm font-medium text-gray-700">文書名</label>
           <input
             type="text"
-            value={document.name}
-            onChange={(e) => setDocument({ ...document, name: e.target.value })}
+            value={document.title}
+            onChange={(e) => setDocument({ ...document, title: e.target.value })}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           />
         </div>

@@ -14,18 +14,6 @@ type testObj = {
 }
 
 const App = () => {
-  const [documents, setDocuments] = useState<testObj[]>([]);
-
-  useEffect(() => {
-    fetch('/list')
-      .then(res => res.json())
-      .then(data => {
-        setDocuments(data);
-      }).catch(err => {
-        console.log(err)
-      })
-  }, []);
-
   return (
     <BrowserRouter>
       <nav className="bg-gray-800">
