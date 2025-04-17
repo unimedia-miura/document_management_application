@@ -3,6 +3,6 @@ export type Document = {
     title: string;
     content: string;
     shippingStatus: number;
-    createdAt: string;
-    updatedAt: string;
+    createdAt: Date;
+    updatedAt: Date;
 };

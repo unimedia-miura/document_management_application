@@ -7,7 +7,7 @@ export const List = () => {
   const [documents, setDocuments] = useState<Document[]>([]);
 
   useEffect(() => {
-    fetch('/documents')
+    fetch('/api/documents')
       .then((res) => res.json())
       .then((data) => {
         setDocuments(data);

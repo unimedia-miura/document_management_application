@@ -1,8 +1,9 @@
-import { Request, Response } from 'express';
-import { PrismaClient } from "../../../src/generated/prisma";
-import { Document } from '../types/Document';
+import { NextFunction, Request, Response } from 'express';
+import documentService from '../service/documentService';
+import { Prisma } from '../../generated/prisma';
+import { body, validationResult } from 'express-validator';
 
-const getDocuments = async (req: Request, res: Response): Promise<Response> => {
+const getDocuments = async(req: Request, res: Response): Promise<Response<Document[]>> => {
     try {
         const documents = [
             {
@@ -33,20 +34,25 @@ const getDocuments = async (req: Request, res: Response): Promise<Response> => {
         return res.json(documents);
     } catch(error) {
         console.error("Error fetching documents:", error);
-        return res.status(500).json({ error: "Internal Server Error"});
+        return res.status(500).json({ error: "Error fetching documents"});
     }
 }
 
-// router.post("/document", express.json(), async (req: Request, res: Response) => {
-// 		const { title, content, shippingStatus } = req.body;
-// 		const document = await prisma.document.create({
-// 			data: {
-// 				title,
-// 				content,
-// 				shippingStatus,
-// 			},
-// 		});
-// 		res.status(201).json(document);
-// 	});
+const createDocument = async(req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+	const errors = validationResult(req);
+	if (!errors.isEmpty()) {
+		return res.status(400).json({ errors: errors.array() });
+	}
 
-export { getDocuments };
+	try {
+		const data: Prisma.DocumentCreateInput = req.body;
+		const newDocument = await documentService.createDocument(data);
+		return res.status(201).json(newDocument);
+  } catch (error) {
+		console.error("Error create document:", error);
+    next(error);
+  }
+}
+
+
+export { getDocuments, createDocument };
