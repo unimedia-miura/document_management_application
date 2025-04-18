@@ -5,40 +5,33 @@ import { Document } from '../types/Document';
 export const EditDocument = () => {
   const params = useParams();
   const navigate = useNavigate();
-  const [document, setDocument] = useState<Document>({
-    id: 0,
-    title: '',
-    content: '',
-    shippingStatus: 0,
-    createdAt: '',
-    updatedAt: '',
-  });
+  const [document, setDocument] = useState<Document>();
 
-	const sampleDocument: Document = {
-		id: 1,
-		title: "Sample Document",
-		content: "This is a sample document",
-    shippingStatus: 0,
-		createdAt:  "2023-10-01",
-		updatedAt: "2023-10-01",
-}
+	useEffect(() => {
+    fetch('/api/document/' + params.id)
+					.then((res) => res.json())
+					.then((data) => {
+						setDocument(data);
+					})
+					.catch((err) => {
+						console.log(err);
+					});
+		}, [params.id]);
 
-  useEffect(() => {
-    // 文書詳細を取得
-		setDocument(sampleDocument);
-    // fetch(`/document/${params.id}`)
-    //   .then((res) => res.json())
-    //   .then((data) => {
-    //     setDocument(data);
-    //   })
-    //   .catch((err) => {
-    //     console.log(err);
-    //   });
-  }, [params.id]);
+    if (!document) {
+			return (
+				<div className="container mx-auto p-4">
+					<h1 className="text-xl font-bold mb-4">文書詳細</h1>
+					<div className="bg-white shadow-md rounded-md p-6">
+						<h2>詳細情報が取得できませんでした。</h2>
+					</div>
+				</div>
+			)
+		}
 
   const handleSave = async () => {
     try {
-      const response = await fetch(`/document/${document.id}`, {
+      const response = await fetch(`/api/document/${document.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

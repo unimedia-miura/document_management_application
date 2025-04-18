@@ -1,4 +1,4 @@
-import { body } from "express-validator";
+import { body, param } from "express-validator";
 
 const createDocumentValidationRules = [
     body('title')
@@ -14,6 +14,14 @@ const createDocumentValidationRules = [
         .isInt({ min: 0 }).withMessage('発送ステータスは0以上の整数で入力してください'),
 ];
 
+const updateDocumentValidationRules = [
+    param('id')
+        .notEmpty().withMessage('IDは必須入力です')
+        .isInt(),
+    ...createDocumentValidationRules,
+];
+
 export default {
     createDocumentValidationRules,
+    updateDocumentValidationRules,
 };

@@ -10,10 +10,10 @@ export const NewDocumentForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const newDocument = { title, content };
+    const newDocument = { title, content, shippingStatus };
 
     try {
-      const response = await fetch('/documents', {
+      const response = await fetch('/api/document', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

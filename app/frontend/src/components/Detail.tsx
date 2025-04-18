@@ -3,30 +3,20 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { formatDate } from '../common';
 import { Document } from '../types/Document';
 
-const sampleDocument: Document = {
-		id: 1,
-		title: "Sample Document",
-		content: "This is a sample document",
-		shippingStatus: 0,
-		createdAt:  "2023-10-01",
-		updatedAt: "2023-10-01",
-}
-
 export const Detail = () => {
     const params = useParams();
 		const navigate = useNavigate();
-		const [document, setDocument] = useState<Document>(sampleDocument);
-		 // TODO: 詳細取得API作成する
-			// useEffect(() => {
-			// 	fetch('/document/' + params.id)
-			// 		.then((res) => res.json())
-			// 		.then((data) => {
-			// 			setDocument(data);
-			// 		})
-			// 		.catch((err) => {
-			// 			console.log(err);
-			// 		});
-			// }, [params.id]);
+		const [document, setDocument] = useState<Document>();
+			useEffect(() => {
+				fetch('/api/document/' + params.id)
+					.then((res) => res.json())
+					.then((data) => {
+						setDocument(data);
+					})
+					.catch((err) => {
+						console.log(err);
+					});
+			}, [params.id]);
 
 			const displayShippingStatus = (status: number) => {
 				switch (status) {
@@ -41,8 +31,19 @@ export const Detail = () => {
 				}
 			};
 
+		if (!document) {
+			return (
+				<div className="container mx-auto p-4">
+					<h1 className="text-xl font-bold mb-4">文書詳細</h1>
+					<div className="bg-white shadow-md rounded-md p-6">
+						<h2>詳細情報が取得できませんでした。</h2>
+					</div>
+				</div>
+			)
+		}
+
     return (
-		<div className="container mx-auto p-4">
+	<div className="container mx-auto p-4">
       <h1 className="text-xl font-bold mb-4">文書詳細</h1>
       <div className="bg-white shadow-md rounded-md p-6">
         <h2 className="text-lg font-semibold mb-3">文書名: {document.title}</h2>

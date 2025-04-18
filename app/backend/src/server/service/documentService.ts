@@ -3,8 +3,16 @@ import { Prisma, Document } from "../../generated/prisma";
 
 class DocumentService {
     async createDocument(data: Prisma.DocumentCreateInput): Promise<Document> {
-        // TODO: バリデーション追加
         return documentRepository.createDocument(data);
+    }
+    async updateDocument(id: number, data: Prisma.DocumentCreateInput): Promise<Document> {
+        return documentRepository.updateDocument(id, data);
+    }
+    async getAllDocuments(): Promise<Document[]> {
+        return documentRepository.getAllDocuments();
+    }
+    async getDocumentDetail(id: number) {
+        return documentRepository.getDocumentById(id);
     }
 }
 
