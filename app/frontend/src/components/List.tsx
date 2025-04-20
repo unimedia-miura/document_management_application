@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { formatDate } from '../common';
+import { formatDate, displayShippingStatus } from '../common';
 import { Document } from '../types/Document';
 
 export const List = () => {
@@ -37,7 +37,7 @@ export const List = () => {
                   {document.title}
                 </Link>
               </td>
-              <td className="px-4 py-2 border-b text-sm text-gray-800">未発送</td>
+              <td className="px-4 py-2 border-b text-sm text-gray-800">{displayShippingStatus(document.shippingStatus)}</td>
               <td className="px-4 py-2 border-b text-sm text-gray-800">{formatDate(document.createdAt)}</td>
 							<td className="px-4 py-2 border-b text-sm text-gray-800">{formatDate(document.updatedAt)}</td>
             </tr>
