@@ -1,23 +1,32 @@
 import express from "express";
-import { getDocuments, getDocumentDetail, createDocument, updateDocument } from "../controller/documentController";
+import DocumentController from "../controllers/documentController";
+import DocumentService from "../services/documentService";
+import DocumentRepository from "../repositories/documentRepository";
+import prisma from "../../../prisma";
 import documentValidator from "../validator/documentValidator";
 
 const router = express.Router();
 
+const documentRepository = new DocumentRepository(prisma);
+
+const documentService = new DocumentService(documentRepository);
+
+const documentController = new DocumentController(documentService);
+
 router.get('/documents', async (req, res): Promise<void> => {
-    await getDocuments(req, res);
+    await documentController.getDocuments(req, res);
 });
 
 router.get('/document/:id', async (req, res): Promise<void> => {
-    await getDocumentDetail(req, res);
+    await documentController.getDocumentDetail(req, res);
 });
 
 router.post("/document", documentValidator.createDocumentValidationRules, async (req: express.Request, res: express.Response): Promise<void> => {
-    await createDocument(req, res);
+    await documentController.createDocument(req, res);
 });
 
 router.put("/document/:id", documentValidator.updateDocumentValidationRules, async (req: express.Request, res: express.Response): Promise<void> => {
-    await updateDocument(req, res);
+    await documentController.updateDocument(req, res);
 });
 
 
