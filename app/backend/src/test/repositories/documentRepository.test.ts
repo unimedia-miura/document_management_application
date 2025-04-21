@@ -7,6 +7,7 @@ const mockPrisma = {
         update: jest.fn(),
         findMany: jest.fn(),
         findUnique: jest.fn(),
+        delete: jest.fn()
     },
 } as unknown as PrismaClient;
 
@@ -18,6 +19,7 @@ describe('DocumentRepository', () => {
         (mockPrisma.document.update as jest.Mock).mockClear();
         (mockPrisma.document.findMany as jest.Mock).mockClear();
         (mockPrisma.document.findUnique as jest.Mock).mockClear();
+        (mockPrisma.document.delete as jest.Mock).mockClear();
     });
 
     describe('createDocument', () => {
@@ -43,9 +45,9 @@ describe('DocumentRepository', () => {
             expect(result).toEqual(createdDocument);
         });
 
-        it('Prismaのエラーをキャッチして再スローすること', async () => {
+        it('文書作成処理中のエラーをキャッチし、「Failed to create document」というエラーをthrowすること', async () => {
             const createInput = { title: 'Test Document', content: 'This is a test document.' };
-            const errorMessage = 'Prisma create error';
+            const errorMessage = 'Failed to create document';
             (mockPrisma.document.create as jest.Mock).mockRejectedValue(new Error(errorMessage));
 
             await expect(documentRepository.createDocument(createInput)).rejects.toThrow(errorMessage);
@@ -74,10 +76,10 @@ describe('DocumentRepository', () => {
             expect(result).toEqual(updatedDocument);
         });
 
-        it('Prismaのエラーをキャッチして再スローすること', async () => {
+        it('文書更新処理中のエラーをキャッチし、「Failed to update document」というエラーをthrowすること', async () => {
             const documentId = 1;
             const updateInput = { title: 'Updated Document', content: 'This document has been updated.' };
-            const errorMessage = 'Prisma update error';
+            const errorMessage = 'Failed to update document';
             (mockPrisma.document.update as jest.Mock).mockRejectedValue(new Error(errorMessage));
 
             await expect(documentRepository.updateDocument(documentId, updateInput)).rejects.toThrow(errorMessage);
@@ -118,8 +120,8 @@ describe('DocumentRepository', () => {
             expect(result).toEqual(allDocuments);
         });
 
-        it('Prismaのエラーをキャッチして再スローすること', async () => {
-            const errorMessage = 'Prisma findMany error';
+        it('文書情報取得中のエラーをキャッチし、「Faild to fetch documents」というエラーをthrowすること', async () => {
+            const errorMessage = 'Faild to fetch documents';
             (mockPrisma.document.findMany as jest.Mock).mockRejectedValue(new Error(errorMessage));
 
             await expect(documentRepository.getAllDocuments()).rejects.toThrow(errorMessage);
@@ -148,13 +150,54 @@ describe('DocumentRepository', () => {
             expect(result).toEqual(testDocument);
         });
 
-        it('Prismaのエラーをキャッチして再スローすること', async () => {
+        it('指定されたIDのドキュメントが存在しない場合、nullを返すこと', async () => {
+            const documentId = 99;
+            (mockPrisma.document.findUnique as jest.Mock).mockResolvedValue(null);
+
+            const result = await documentRepository.getDocumentById(documentId);
+
+            expect(mockPrisma.document.findUnique).toHaveBeenCalledWith({ where: { id: documentId } });
+            expect(result).toBeNull();
+        });
+
+        it('文書情報取得中のエラーをキャッチし、「Faild to fetch document by ID」というエラーをthrowすること', async () => {
             const documentId = 1;
-            const errorMessage = 'Prisma findUnique error';
+            const errorMessage = 'Faild to fetch document by ID';
             (mockPrisma.document.findUnique as jest.Mock).mockRejectedValue(new Error(errorMessage));
 
             await expect(documentRepository.getDocumentById(documentId)).rejects.toThrow(errorMessage);
             expect(mockPrisma.document.findUnique).toHaveBeenCalledWith({ where: { id: documentId } });
+        });
+    });
+
+    describe('deleteDocument', () => {
+        it('指定されたIDの文書を削除し、削除された文書情報を返すこと', async() => {
+            const documentId = 1;
+            const deletedDocument = {
+                id: documentId,
+                createdAt: new Date("2025-04-17T06:12:42.001Z"),
+                updatedAt: new Date("2025-04-17T06:12:42.001Z"),
+                title: "テスト文書",
+                content: "これはテスト文書1の内容です。",
+                shippingStatus: 0,
+                published: false
+            } as Document;
+
+            (mockPrisma.document.delete as jest.Mock).mockResolvedValue(deletedDocument);
+
+            const result = await documentRepository.deleteDocument(documentId);
+
+            expect(mockPrisma.document.delete).toHaveBeenCalledTimes(1);
+            expect(result).toEqual(deletedDocument);
+        });
+
+        it('文書情報削除中のエラーをキャッチし、「Faild to delete document」というエラーをthrowすること', async () => {
+            const documentId = 1;
+            const errorMessage = 'Faild to delete document';
+            (mockPrisma.document.delete as jest.Mock).mockRejectedValue(new Error(errorMessage));
+
+            await expect(documentRepository.deleteDocument(documentId)).rejects.toThrow(errorMessage);
+            expect(mockPrisma.document.delete).toHaveBeenCalledWith({ where: { id: documentId } });
         });
     });
 });
