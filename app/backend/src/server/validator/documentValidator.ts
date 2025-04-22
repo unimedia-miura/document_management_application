@@ -20,8 +20,17 @@ const updateDocumentValidationRules = [
         .isInt(),
     ...createDocumentValidationRules,
 ];
+const getDocumentByIdValidationRules = [
+    param('id')
+        .notEmpty().withMessage('IDは必須入力です')
+        .isInt(),
+];
+const getDocumentDetailValidationRules = getDocumentByIdValidationRules;
+const deleteDocumentValidationRules = getDocumentByIdValidationRules;
 
 export default {
     createDocumentValidationRules,
     updateDocumentValidationRules,
+    getDocumentDetailValidationRules,
+    deleteDocumentValidationRules,
 };

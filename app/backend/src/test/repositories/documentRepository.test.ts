@@ -133,7 +133,7 @@ describe('DocumentRepository', () => {
         it('指定されたIDの文書が存在する場合、その文書情報を返すこと', async() => {
             const documentId = 1;
             const testDocument =  {
-                "id": 1,
+                "id": documentId,
                 "createdAt": new Date("2025-04-17T06:12:42.001Z"),
                 "updatedAt": new Date("2025-04-17T06:12:42.001Z"),
                 "title": "テスト文書",

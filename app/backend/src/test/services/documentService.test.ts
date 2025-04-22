@@ -132,7 +132,7 @@ describe('DocumentService', () => {
         it('RepositoryのgetDocumentByIdを呼び出し、その結果を返すこと', async() => {
             const documentId = 1;
             const testDocument =  {
-                "id": 1,
+                "id": documentId,
                 "createdAt": new Date("2025-04-17T06:12:42.001Z"),
                 "updatedAt": new Date("2025-04-17T06:12:42.001Z"),
                 "title": "テスト文書",

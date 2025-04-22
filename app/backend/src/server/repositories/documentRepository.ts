@@ -47,7 +47,7 @@ class DocumentRepository {
     }
 
     async deleteDocument(id: number): Promise<Document | null> {
-        try {
+        try { // TODO: 物理削除から論理削除にする
             return this.prisma.document.delete({ where: {id: id}});
         } catch (error) {
             console.log("Error deleting document:", error);
