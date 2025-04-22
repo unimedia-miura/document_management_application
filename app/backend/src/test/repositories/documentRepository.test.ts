@@ -78,7 +78,7 @@ describe('DocumentRepository', () => {
 
         it('文書更新処理中のエラーをキャッチし、「Failed to update document」というエラーをthrowすること', async () => {
             const documentId = 1;
-            const updateInput = { title: 'Updated Document', content: 'This document has been updated.' };
+            const updateInput = { title: 'Updated Document', content: 'This document has been updated.', shippingStatus: 0 };
             const errorMessage = 'Failed to update document';
             (mockPrisma.document.update as jest.Mock).mockRejectedValue(new Error(errorMessage));
 
@@ -189,6 +189,16 @@ describe('DocumentRepository', () => {
 
             expect(mockPrisma.document.delete).toHaveBeenCalledTimes(1);
             expect(result).toEqual(deletedDocument);
+        });
+
+        it('指定されたIDのドキュメントが存在しない場合、nullを返すこと', async () => {
+            const documentId = 99;
+            (mockPrisma.document.delete as jest.Mock).mockResolvedValue(null);
+
+            const result = await documentRepository.deleteDocument(documentId);
+
+            expect(mockPrisma.document.delete).toHaveBeenCalledWith({ where: { id: documentId } });
+            expect(result).toBeNull();
         });
 
         it('文書情報削除中のエラーをキャッチし、「Faild to delete document」というエラーをthrowすること', async () => {
