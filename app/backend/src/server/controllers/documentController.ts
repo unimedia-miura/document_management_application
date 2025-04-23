@@ -81,12 +81,12 @@ class DocumentController {
         }
 
         try {
-            const id = parseInt(req.params.id); // パスパラメータから ID を取得
+            const id = parseInt(req.params.id);
             if (isNaN(id)) {
                 return res.status(400).json({ error: 'Invalid ID' });
             }
             const deleteDocument = await this.documentService.deleteDocument(id);
-            return res.status(200).json(deleteDocument);
+            return res.status(204).json(deleteDocument);
         } catch (error) {
             console.error("Error delete document:", error);
             return res.status(500).json({ error: "Error deleting document"});

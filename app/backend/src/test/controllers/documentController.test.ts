@@ -51,7 +51,8 @@ describe('DocumentController', () => {
                     ...createInput,
                     createdAt: new Date(),
                     updatedAt: new Date(),
-                    published: false
+                    deletedAt: null,
+                    delete_flg: false
                 } as Document;
     
                 (mockDocumentService.createDocument as jest.Mock).mockResolvedValue(createdDocument);
@@ -203,7 +204,8 @@ describe('DocumentController', () => {
                     "title": "テスト文書",
                     "content": "これはテスト文書1の内容です。",
                     "shippingStatus": 0,
-                    "published": false
+                    "delete_flg": false,
+                    "deletedAt": null
                 },
                 {
                     "id": 2,
@@ -212,7 +214,8 @@ describe('DocumentController', () => {
                     "title": "テスト文書2",
                     "content": "これはテスト文書2の内容です。",
                     "shippingStatus": 1,
-                    "published": false
+                    "delete_flg": false,
+                    "deletedAt": null
                 },
             ] as Document[];
 
@@ -242,16 +245,17 @@ describe('DocumentController', () => {
     });
 
     describe('getDocumentDetail', () => {
-        it('バリデーションに成功し、SeriviceのgetDocumentDetailを呼び出し、成功時に204と更新された文書情報を返すこと', async() => {
+        it('バリデーションに成功し、SeriviceのgetDocumentDetailを呼び出し、成功時に200と更新された文書情報を返すこと', async() => {
             const documentId = 1;
             const testDocument =  {
                 "id": documentId,
                 "createdAt": new Date("2025-04-17T06:12:42.001Z"),
                 "updatedAt": new Date("2025-04-17T06:12:42.001Z"),
+                "deletedAt": null,
                 "title": "テスト文書",
                 "content": "これはテスト文書1の内容です。",
                 "shippingStatus": 0,
-                "published": false
+                "delete_flg": false,
             } as Document;
 
             (validationResult as unknown as jest.Mock).mockReturnValue({ isEmpty: jest.fn().mockReturnValue(true) });
@@ -316,19 +320,20 @@ describe('DocumentController', () => {
     });
 
     describe('deleteDocument', () => {
-        it('バリデーションに成功し、SeriviceのdeleteDocumentを呼び出し、成功時に200と削除された文書情報を返すこと', async() => {
+        it('バリデーションに成功し、SeriviceのdeleteDocumentを呼び出し、成功時に204と論理削除された文書情報を返すこと', async() => {
             const documentId = 1;
-            const testDocument =  {
-                "id": documentId,
-                "createdAt": new Date("2025-04-17T06:12:42.001Z"),
-                "updatedAt": new Date("2025-04-17T06:12:42.001Z"),
-                "title": "テスト文書",
-                "content": "これはテスト文書1の内容です。",
-                "shippingStatus": 0,
-                "published": false
+            const updatedDocument = {
+                id: documentId,
+                createdAt: new Date("2025-04-17T06:12:42.001Z"),
+                updatedAt: new Date("2025-04-17T06:12:42.001Z"),
+                title: "テスト文書",
+                content: "これはテスト文書1の内容です。",
+                shippingStatus: 0,
+                delete_flg: true,
+                deletedAt: new Date(),
             } as Document;
 
-            (mockDocumentService.deleteDocument as jest.Mock).mockResolvedValue(testDocument);
+            (mockDocumentService.deleteDocument as jest.Mock).mockResolvedValue(updatedDocument);
             (validationResult as unknown as jest.Mock).mockReturnValue({ isEmpty: jest.fn().mockReturnValue(true) });
             mockRequest.params = { id: documentId.toString() };
 
@@ -336,7 +341,7 @@ describe('DocumentController', () => {
 
             expect(mockDocumentService.deleteDocument).toHaveBeenCalledWith(documentId);
             expect(mockDocumentService.deleteDocument).toHaveBeenCalledTimes(1);
-            expect(mockStatus).toHaveBeenCalledWith(200);
+            expect(mockStatus).toHaveBeenCalledWith(204);
             expect(mockJson).not.toHaveBeenCalledWith();
         });
 

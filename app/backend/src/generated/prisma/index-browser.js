@@ -119,12 +119,13 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
 
 exports.Prisma.DocumentScalarFieldEnum = {
   id: 'id',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
   title: 'title',
   content: 'content',
   shippingStatus: 'shippingStatus',
-  published: 'published'
+  delete_flg: 'delete_flg',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
 };
 
 exports.Prisma.ProfileScalarFieldEnum = {
@@ -145,14 +146,14 @@ exports.Prisma.SortOrder = {
   desc: 'desc'
 };
 
-exports.Prisma.DocumentOrderByRelevanceFieldEnum = {
-  title: 'title',
-  content: 'content'
-};
-
 exports.Prisma.NullsOrder = {
   first: 'first',
   last: 'last'
+};
+
+exports.Prisma.DocumentOrderByRelevanceFieldEnum = {
+  title: 'title',
+  content: 'content'
 };
 
 exports.Prisma.ProfileOrderByRelevanceFieldEnum = {

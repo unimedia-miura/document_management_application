@@ -35,7 +35,8 @@ describe('DocumentService', () => {
                 ...createInput,
                 createdAt: new Date(),
                 updatedAt: new Date(),
-                published: false
+                deletedAt: null,
+                delete_flg: false
             } as Document;
 
             (mockDocumentRepository.createDocument as jest.Mock).mockResolvedValue(createdDocument);
@@ -90,16 +91,7 @@ describe('DocumentService', () => {
 
     describe('getAllDocuments', () => {
         it('RepositoryのgetAllDocumentsを呼び出し、その結果を返すこと', async() => {
-            const allDocuments = [
-                {
-                    "id": 1,
-                    "createdAt": new Date("2025-04-17T06:12:42.001Z"),
-                    "updatedAt": new Date("2025-04-17T06:12:42.001Z"),
-                    "title": "テスト文書",
-                    "content": "これはテスト文書1の内容です。",
-                    "shippingStatus": 0,
-                    "published": false
-                },
+            const activeDocuments = [
                 {
                     "id": 2,
                     "createdAt": new Date("2025-04-17T08:21:22.555Z"),
@@ -107,16 +99,18 @@ describe('DocumentService', () => {
                     "title": "テスト文書2",
                     "content": "これはテスト文書2の内容です。",
                     "shippingStatus": 1,
-                    "published": false
+                    "delete_flg": false,
+                    "deletedAt": null
                 },
             ] as Document[];
 
-            (mockDocumentRepository.getAllDocuments as jest.Mock).mockResolvedValue(allDocuments);
+            (mockDocumentRepository.getAllDocuments as jest.Mock).mockResolvedValue(activeDocuments);
 
             const result = await documentService.getAllDocuments();
 
             expect(mockDocumentRepository.getAllDocuments).toHaveBeenCalledTimes(1);
-            expect(result).toEqual(allDocuments);
+            expect(mockDocumentRepository.getAllDocuments).toHaveBeenCalledWith({ delete_flg: false });
+            expect(result).toEqual(activeDocuments);
         });
 
         it('RepositoryのgetAllDocumentsがエラーをthrowした場合、Serviceは「Failed to get all documents in documentService」というエラーをthrowすること', async () => {
@@ -124,7 +118,7 @@ describe('DocumentService', () => {
             (mockDocumentRepository.getAllDocuments as jest.Mock).mockRejectedValue(repositoryError);
 
             await expect(documentService.getAllDocuments()).rejects.toThrow('Failed to get all documents in documentService');
-            expect(mockDocumentRepository.getAllDocuments).toHaveBeenCalledWith();
+            expect(mockDocumentRepository.getAllDocuments).toHaveBeenCalledWith({ delete_flg: false });
         });
     });
 
@@ -135,10 +129,11 @@ describe('DocumentService', () => {
                 "id": documentId,
                 "createdAt": new Date("2025-04-17T06:12:42.001Z"),
                 "updatedAt": new Date("2025-04-17T06:12:42.001Z"),
+                "deletedAt": null,
                 "title": "テスト文書",
                 "content": "これはテスト文書1の内容です。",
                 "shippingStatus": 0,
-                "published": false
+                "delete_flg": false,
             } as Document;
 
             (mockDocumentRepository.getDocumentById as jest.Mock).mockResolvedValue(testDocument);
@@ -172,22 +167,23 @@ describe('DocumentService', () => {
     describe('deleteDocument', () => {
         it('RepositoryのdeleteDocumentを呼び出し、その結果を返すこと', async() => {
             const documentId = 1;
-            const testDocument =  {
-                "id": 1,
-                "createdAt": new Date("2025-04-17T06:12:42.001Z"),
-                "updatedAt": new Date("2025-04-17T06:12:42.001Z"),
-                "title": "テスト文書",
-                "content": "これはテスト文書1の内容です。",
-                "shippingStatus": 0,
-                "published": false
+            const updatedDocument = {
+                id: documentId,
+                createdAt: new Date("2025-04-17T06:12:42.001Z"),
+                updatedAt: new Date("2025-04-17T06:12:42.001Z"),
+                title: "テスト文書",
+                content: "これはテスト文書1の内容です。",
+                shippingStatus: 0,
+                delete_flg: true,
+                deletedAt: new Date(),
             } as Document;
 
-            (mockDocumentRepository.deleteDocument as jest.Mock).mockResolvedValue(testDocument);
+            (mockDocumentRepository.deleteDocument as jest.Mock).mockResolvedValue(updatedDocument);
 
             const result = await documentService.deleteDocument(documentId);
 
             expect(mockDocumentRepository.deleteDocument).toHaveBeenCalledTimes(1);
-            expect(result).toEqual(testDocument);
+            expect(result).toEqual(updatedDocument);
         });
 
         it('指定されたIDのドキュメントが存在しない場合、nullを返すこと', async () => {

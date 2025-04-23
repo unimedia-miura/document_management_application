@@ -34,7 +34,8 @@ describe('DocumentRepository', () => {
                 ...createInput,
                 createdAt: new Date(),
                 updatedAt: new Date(),
-                published: false
+                delete_flg: false,
+                deletedAt: null
             } as Document;
 
             (mockPrisma.document.create as jest.Mock).mockResolvedValue(createdDocument);
@@ -91,7 +92,7 @@ describe('DocumentRepository', () => {
     });
 
     describe('getAllDocuments', () => {
-        it('全ての文書情報を取得し、その配列を返すこと', async() => {
+        it('フィルタリング条件なしで呼び出した場合、全ての文書情報を取得し、その配列を返すこと', async() => {
             const allDocuments = [
                 {
                     "id": 1,
@@ -100,7 +101,8 @@ describe('DocumentRepository', () => {
                     "title": "テスト文書",
                     "content": "これはテスト文書1の内容です。",
                     "shippingStatus": 0,
-                    "published": false
+                    "delete_flg": false,
+                    "deletedAt": null
                 },
                 {
                     "id": 2,
@@ -109,7 +111,8 @@ describe('DocumentRepository', () => {
                     "title": "テスト文書2",
                     "content": "これはテスト文書2の内容です。",
                     "shippingStatus": 1,
-                    "published": false
+                    "delete_flg": false,
+                    "deletedAt": null
                 },
             ] as Document[];
             (mockPrisma.document.findMany as jest.Mock).mockResolvedValue(allDocuments);
@@ -117,7 +120,31 @@ describe('DocumentRepository', () => {
             const result = await documentRepository.getAllDocuments();
 
             expect(mockPrisma.document.findMany).toHaveBeenCalledTimes(1);
+            expect(mockPrisma.document.findMany).toHaveBeenCalledWith({ where: undefined });
             expect(result).toEqual(allDocuments);
+        });
+
+        it('フィルタリング条件ありで呼び出した場合、その条件で検索された文書情報を取得し、その配列を返すこと', async() => {
+            const activeDocuments = [
+                {
+                    "id": 1,
+                    "createdAt": new Date("2025-04-17T06:12:42.001Z"),
+                    "updatedAt": new Date("2025-04-17T06:12:42.001Z"),
+                    "title": "テスト文書",
+                    "content": "これはテスト文書1の内容です。",
+                    "shippingStatus": 0,
+                    "delete_flg": false,
+                    "deletedAt": new Date("2025-04-23T06:12:42.001Z")
+                },
+            ] as Document[];
+            const whereCondition = { delete_flg: false };
+            (mockPrisma.document.findMany as jest.Mock).mockResolvedValue(activeDocuments);
+
+            const result = await documentRepository.getAllDocuments(whereCondition);
+
+            expect(mockPrisma.document.findMany).toHaveBeenCalledTimes(1);
+            expect(mockPrisma.document.findMany).toHaveBeenCalledWith({ where: whereCondition });
+            expect(result).toEqual(activeDocuments);
         });
 
         it('文書情報取得中のエラーをキャッチし、「Faild to fetch documents」というエラーをthrowすること', async () => {
@@ -136,10 +163,11 @@ describe('DocumentRepository', () => {
                 "id": documentId,
                 "createdAt": new Date("2025-04-17T06:12:42.001Z"),
                 "updatedAt": new Date("2025-04-17T06:12:42.001Z"),
+                "deletedAt": null,
                 "title": "テスト文書",
                 "content": "これはテスト文書1の内容です。",
                 "shippingStatus": 0,
-                "published": false
+                "delete_flg": false,
             } as Document;
 
             (mockPrisma.document.findUnique as jest.Mock).mockResolvedValue(testDocument);
@@ -171,43 +199,58 @@ describe('DocumentRepository', () => {
     });
 
     describe('deleteDocument', () => {
-        it('指定されたIDの文書を削除し、削除された文書情報を返すこと', async() => {
+        it('指定されたIDの文書を論理削除し、更新された文書情報を返すこと', async() => {
             const documentId = 1;
-            const deletedDocument = {
+            const deletedDate = new Date();
+            const updatedDocument = {
                 id: documentId,
                 createdAt: new Date("2025-04-17T06:12:42.001Z"),
                 updatedAt: new Date("2025-04-17T06:12:42.001Z"),
                 title: "テスト文書",
                 content: "これはテスト文書1の内容です。",
                 shippingStatus: 0,
-                published: false
+                delete_flg: true,
+                deletedAt: deletedDate,
             } as Document;
 
-            (mockPrisma.document.delete as jest.Mock).mockResolvedValue(deletedDocument);
+            (mockPrisma.document.update as jest.Mock).mockResolvedValue(updatedDocument);
 
             const result = await documentRepository.deleteDocument(documentId);
 
-            expect(mockPrisma.document.delete).toHaveBeenCalledTimes(1);
-            expect(result).toEqual(deletedDocument);
+            expect(mockPrisma.document.update).toHaveBeenCalledTimes(1);
+            expect(result).toEqual(updatedDocument);
         });
 
         it('指定されたIDのドキュメントが存在しない場合、nullを返すこと', async () => {
             const documentId = 99;
-            (mockPrisma.document.delete as jest.Mock).mockResolvedValue(null);
+            const deletedTime = new Date();
+            (mockPrisma.document.update as jest.Mock).mockResolvedValue(null);
 
             const result = await documentRepository.deleteDocument(documentId);
 
-            expect(mockPrisma.document.delete).toHaveBeenCalledWith({ where: { id: documentId } });
+            expect(mockPrisma.document.update).toHaveBeenCalledWith({ where: { id: documentId },
+                data: {
+                    delete_flg: true,
+                    deletedAt: deletedTime,
+                }
+            });
             expect(result).toBeNull();
         });
 
-        it('文書情報削除中のエラーをキャッチし、「Faild to delete document」というエラーをthrowすること', async () => {
+        it('文書更新処理中のエラーをキャッチし、「Failed to delete document」というエラーをthrowすること', async () => {
             const documentId = 1;
-            const errorMessage = 'Faild to delete document';
-            (mockPrisma.document.delete as jest.Mock).mockRejectedValue(new Error(errorMessage));
+            const deletedDate = new Date();
+            const errorMessage = 'Failed to delete document';
+            (mockPrisma.document.update as jest.Mock).mockRejectedValue(new Error(errorMessage));
 
             await expect(documentRepository.deleteDocument(documentId)).rejects.toThrow(errorMessage);
-            expect(mockPrisma.document.delete).toHaveBeenCalledWith({ where: { id: documentId } });
+            expect(mockPrisma.document.update).toHaveBeenCalledWith({
+                where: { id: documentId },
+                data: {
+                    delete_flg: true,
+                    deletedAt: deletedDate,
+                },
+            });
         });
     });
 });

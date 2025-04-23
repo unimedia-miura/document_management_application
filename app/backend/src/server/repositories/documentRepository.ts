@@ -28,9 +28,11 @@ class DocumentRepository {
         }
     }
 
-    async getAllDocuments(): Promise<Document[]> {
+    async getAllDocuments(where?: Prisma.DocumentWhereInput): Promise<Document[]> {
         try {
-            return this.prisma.document.findMany();
+            return this.prisma.document.findMany({
+                where: where,
+            });
         } catch (error) {
             console.log("Error fetching documents:", error);
             throw new Error("Faild to fetch documents");
@@ -47,8 +49,14 @@ class DocumentRepository {
     }
 
     async deleteDocument(id: number): Promise<Document | null> {
-        try { // TODO: 物理削除から論理削除にする
-            return this.prisma.document.delete({ where: {id: id}});
+        try {
+            return this.prisma.document.update({
+                where: { id },
+                data: {
+                    delete_flg: true,
+                    deletedAt: new Date(),
+                }
+            });
         } catch (error) {
             console.log("Error deleting document:", error);
             throw new Error("Faild to delete document");

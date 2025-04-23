@@ -26,7 +26,9 @@ class DocumentService {
     }
     async getAllDocuments(): Promise<Document[]> {
         try {
-            return this.documentRepository.getAllDocuments();
+            return this.documentRepository.getAllDocuments({
+                    delete_flg: false,
+            });
         } catch (error) {
             console.log('Error in getAllDocuments', error);
             throw new Error('Failed to get all documents in documentService');
