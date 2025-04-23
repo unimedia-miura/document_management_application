@@ -42,6 +42,25 @@ export const Detail = () => {
 			)
 		}
 
+		const handleDelete = async () => {
+			try {
+				const response = await fetch(`/api/document/${document.id}`, {
+					method: 'DELETE',
+					headers: {
+					'Content-Type': 'application/json',
+					},
+					body: JSON.stringify(document),
+				});
+				if (response.ok) {
+					navigate(`/`);
+				} else {
+					console.error('Failed to delete document');
+				}
+				} catch (error) {
+				console.error('Error:', error);
+				}
+			};
+
     return (
 	<div className="container mx-auto p-4">
       <h1 className="text-xl font-bold mb-4">文書詳細</h1>
@@ -65,6 +84,12 @@ export const Detail = () => {
 					className='text-white bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-md'
 				>
 					編集
+				</button>
+				<button
+					onClick={handleDelete}
+					className="text-white bg-red-500 hover:bg-blue-600 px-4 py-2 rounded-md"
+				>
+					削除
 				</button>
 			</div>
     </div>
