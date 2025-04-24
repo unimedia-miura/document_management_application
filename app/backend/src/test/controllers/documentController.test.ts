@@ -3,11 +3,12 @@ import DocumentService from "../../server/services/documentService";
 import { Request, Response} from "express";
 import { Prisma, Document } from "../../generated/prisma";
 import { validationResult } from "express-validator";
+import { title } from "process";
 
 const mockDocumentService = {
     createDocument: jest.fn(),
     updateDocument: jest.fn(),
-    getAllDocuments: jest.fn(),
+    getDocuments: jest.fn(),
     getDocumentDetail: jest.fn(),
     deleteDocument: jest.fn(),
 } as unknown as DocumentService;
@@ -34,7 +35,7 @@ describe('DocumentController', () => {
         mockConsoleError.mockClear();
         (mockDocumentService.createDocument as jest.Mock).mockClear();
         (mockDocumentService.updateDocument as jest.Mock).mockClear();
-        (mockDocumentService.getAllDocuments as jest.Mock).mockClear();
+        (mockDocumentService.getDocuments as jest.Mock).mockClear();
         (mockDocumentService.getDocumentDetail as jest.Mock).mockClear();
         (mockDocumentService.deleteDocument as jest.Mock).mockClear();
     });
@@ -195,43 +196,83 @@ describe('DocumentController', () => {
     });
 
     describe('getDocuments', () => {
-        it('SeriviceのgetAllDocumentsを呼び出し、成功時に200と取得した文書情報配列を返すこと', async() => {
-            const allDocuments = [
-                {
-                    "id": 1,
-                    "createdAt": new Date("2025-04-17T06:12:42.001Z"),
-                    "updatedAt": new Date("2025-04-17T06:12:42.001Z"),
-                    "title": "テスト文書",
-                    "content": "これはテスト文書1の内容です。",
-                    "shippingStatus": 0,
-                    "delete_flg": false,
-                    "deletedAt": null
-                },
-                {
-                    "id": 2,
-                    "createdAt": new Date("2025-04-17T08:21:22.555Z"),
-                    "updatedAt": new Date("2025-04-17T08:21:22.555Z"),
-                    "title": "テスト文書2",
-                    "content": "これはテスト文書2の内容です。",
-                    "shippingStatus": 1,
-                    "delete_flg": false,
-                    "deletedAt": null
-                },
-            ] as Document[];
-
-            (validationResult as unknown as jest.Mock).mockReturnValue({ isEmpty: jest.fn().mockReturnValue(true) });
-            (mockDocumentService.getAllDocuments as jest.Mock).mockResolvedValue(allDocuments);
+        const allDocuments = [
+            { id: 1, title: 'Specific Title', content: 'Content 1', shippingStatus: 0, delete_flg: false, createdAt: new Date('2025-04-23T02:13:08.156Z'), updatedAt: new Date('2025-04-23T02:13:08.156Z'), deletedAt: null},
+            { id: 2, title: 'Other Title', content: 'Content 2', shippingStatus: 1, delete_flg: false, createdAt: new Date('2025-04-25T02:13:08.156Z'), updatedAt: new Date('2025-04-25T02:13:08.156Z'), deletedAt: null },
+            { id: 3, title: 'Specific Title', content: 'Content 3', shippingStatus: 1,  delete_flg: true, createdAt: new Date('2025-05-25T02:13:08.156Z'), updatedAt: new Date('2025-05-25T02:13:08.156Z'), deletedAt: null },
+            { id: 4, title: 'Another Title', content: 'Content 4', shippingStatus: 0,  delete_flg: false, createdAt: new Date('2025-06-25T02:13:08.156Z'), updatedAt: new Date('2025-06-25T02:13:08.156Z'), deletedAt: null },
+        ] as Document[];
+        beforeEach(() => {
+            mockRequest = {
+                query: {},
+            }
+        });
+        it('params設定なしの場合、params:{}でSeriviceのgetDocumentsを呼び出すこと', async() => {
 
             await documentController.getDocuments(mockRequest as Request, mockResponse as Response);
 
-            expect(mockDocumentService.getAllDocuments).toHaveBeenCalledTimes(1);
+            expect(mockDocumentService.getDocuments).toHaveBeenCalledTimes(1);
+            expect(mockDocumentService.getDocuments).toHaveBeenCalledWith({});
             expect(mockStatus).toHaveBeenCalledWith(200);
-            expect(mockJson).toHaveBeenCalledWith(allDocuments);
+        });
+
+        it('paramsにtitleを設定した場合、titleを条件としてSeriviceのgetDocumentsを呼び出すこと', async() => {
+            mockRequest.query = { title: 'Specific Title' };
+            await documentController.getDocuments(mockRequest as Request, mockResponse as Response);
+
+            expect(mockDocumentService.getDocuments).toHaveBeenCalledTimes(1);
+            expect(mockDocumentService.getDocuments).toHaveBeenCalledWith({ title: 'Specific Title' });
+            expect(mockStatus).toHaveBeenCalledWith(200);
+        });
+
+        it('paramsにshippingStatusを設定した場合、shippingStatusを条件としてSeriviceのgetDocumentsを呼び出すこと', async() => {
+            mockRequest.query = { shippingStatus: '0' };
+            await documentController.getDocuments(mockRequest as Request, mockResponse as Response);
+
+            expect(mockDocumentService.getDocuments).toHaveBeenCalledTimes(1);
+            expect(mockDocumentService.getDocuments).toHaveBeenCalledWith({ shippingStatus: 0 });
+            expect(mockStatus).toHaveBeenCalledWith(200);
+        });
+
+        it('paramsにcreatedAt（createdAtFrom, createdAtTo）を設定した場合、createdAtを条件としてSeriviceのgetDocumentsを呼び出すこと', async() => {
+            const fromDate = '2025-04-24T00:00:00.000Z';
+            const toDate = '2025-04-25T23:59:59.999Z';
+            mockRequest.query = { createdAtFrom: fromDate, createdAtTo: toDate };
+            await documentController.getDocuments(mockRequest as Request, mockResponse as Response);
+
+            expect(mockDocumentService.getDocuments).toHaveBeenCalledTimes(1);
+            expect(mockDocumentService.getDocuments).toHaveBeenCalledWith({ createdAtFrom: new Date(fromDate), createdAtTo: new Date(toDate) });
+            expect(mockStatus).toHaveBeenCalledWith(200);
+        });
+
+        it('複数項目を条件とした場合、SeriviceのgetDocumentsを呼び出し、成功時に200と該当する文書情報のみ返すこと', async() => {
+            const fromDate = '2025-04-24T00:00:00.000Z';
+            mockRequest.query = { title: 'Specific Title', shippingStatus: '0', createdAtFrom: fromDate };
+            (mockDocumentService.getDocuments as jest.Mock).mockResolvedValue(allDocuments[0])
+
+            await documentController.getDocuments(mockRequest as Request, mockResponse as Response);
+
+            expect(mockDocumentService.getDocuments).toHaveBeenCalledTimes(1);
+            expect(mockDocumentService.getDocuments).toHaveBeenCalledWith({ title: 'Specific Title', shippingStatus: 0, createdAtFrom: new Date(fromDate) });
+            expect(mockStatus).toHaveBeenCalledWith(200);
+            expect(mockJson).toHaveBeenCalledWith(allDocuments[0]);
+        });
+
+        it('条件に一致する文書情報がない場合、SeriviceのgetDocumentsを呼び出し、成功時に200と空の配列を返すこと', async() => {
+            mockRequest.query = { title: 'NonExistent' };
+            (mockDocumentService.getDocuments as jest.Mock).mockResolvedValue([]);
+
+            await documentController.getDocuments(mockRequest as Request, mockResponse as Response);
+
+            expect(mockDocumentService.getDocuments).toHaveBeenCalledTimes(1);
+            expect(mockDocumentService.getDocuments).toHaveBeenCalledWith({ title: 'NonExistent' });
+            expect(mockStatus).toHaveBeenCalledWith(200);
+            expect(mockJson).toHaveBeenCalledWith([]);
         });
 
         it('Serviceがエラーをthrowした場合、500 Internal Server Errorとエラーメッセージを返すこと', async () => {
             const serviceError = new Error('Failed to create document in documentService');
-            (mockDocumentService.getAllDocuments as jest.Mock).mockRejectedValue(serviceError);
+            (mockDocumentService.getDocuments as jest.Mock).mockRejectedValue(serviceError);
 
             await documentController.getDocuments(mockRequest as Request, mockResponse as Response);
 
@@ -267,7 +308,7 @@ describe('DocumentController', () => {
             expect(mockDocumentService.getDocumentDetail).toHaveBeenCalledWith(documentId);
             expect(mockDocumentService.getDocumentDetail).toHaveBeenCalledTimes(1);
             expect(mockStatus).toHaveBeenCalledWith(200);
-            expect(mockJson).not.toHaveBeenCalledWith();
+            expect(mockJson).toHaveBeenCalledWith(testDocument);
         });
 
         it('バリデーションエラーがある場合、400 Bad Requestとエラー配列を返すこと', async() => {

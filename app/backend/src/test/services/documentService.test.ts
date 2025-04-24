@@ -6,19 +6,18 @@ import { Document } from "../../generated/prisma";
 const mockDocumentRepository = {
     createDocument: jest.fn(),
     updateDocument: jest.fn(),
-    getAllDocuments: jest.fn(),
+    getDocuments: jest.fn(),
     getDocumentById: jest.fn(),
     deleteDocument: jest.fn(),
 } as unknown as DocumentRepository;
 
 const documentService = new DocumentService(mockDocumentRepository);
 
-
 describe('DocumentService', () => {
     beforeEach(() => {
         (mockDocumentRepository.createDocument as jest.Mock).mockClear();
         (mockDocumentRepository.updateDocument as jest.Mock).mockClear();
-        (mockDocumentRepository.getAllDocuments as jest.Mock).mockClear();
+        (mockDocumentRepository.getDocuments as jest.Mock).mockClear();
         (mockDocumentRepository.getDocumentById as jest.Mock).mockClear();
         (mockDocumentRepository.deleteDocument as jest.Mock).mockClear();
     });
@@ -89,36 +88,110 @@ describe('DocumentService', () => {
         });
     });
 
-    describe('getAllDocuments', () => {
-        it('RepositoryのgetAllDocumentsを呼び出し、その結果を返すこと', async() => {
-            const activeDocuments = [
-                {
-                    "id": 2,
-                    "createdAt": new Date("2025-04-17T08:21:22.555Z"),
-                    "updatedAt": new Date("2025-04-17T08:21:22.555Z"),
-                    "title": "テスト文書2",
-                    "content": "これはテスト文書2の内容です。",
-                    "shippingStatus": 1,
-                    "delete_flg": false,
-                    "deletedAt": null
-                },
-            ] as Document[];
-
-            (mockDocumentRepository.getAllDocuments as jest.Mock).mockResolvedValue(activeDocuments);
-
-            const result = await documentService.getAllDocuments();
-
-            expect(mockDocumentRepository.getAllDocuments).toHaveBeenCalledTimes(1);
-            expect(mockDocumentRepository.getAllDocuments).toHaveBeenCalledWith({ delete_flg: false });
-            expect(result).toEqual(activeDocuments);
+    describe('getDocuments', () => {
+        const allDocuments = [
+            { id: 1, title: 'Specific Title', content: 'Content 1', shippingStatus: 0, delete_flg: false, createdAt: new Date('2025-04-23T02:13:08.156Z'), updatedAt: new Date('2025-04-23T02:13:08.156Z'), deletedAt: null},
+            { id: 2, title: 'Other Title', content: 'Content 2', shippingStatus: 1, delete_flg: false, createdAt: new Date('2025-04-25T02:13:08.156Z'), updatedAt: new Date('2025-04-25T02:13:08.156Z'), deletedAt: null },
+            { id: 3, title: 'Specific Title', content: 'Content 3', shippingStatus: 1,  delete_flg: true, createdAt: new Date('2025-05-25T02:13:08.156Z'), updatedAt: new Date('2025-05-25T02:13:08.156Z'), deletedAt: null },
+            { id: 4, title: 'Another Title', content: 'Content 4', shippingStatus: 0,  delete_flg: false, createdAt: new Date('2025-06-25T02:13:08.156Z'), updatedAt: new Date('2025-06-25T02:13:08.156Z'), deletedAt: null },
+        ] as Document[];
+        let defaultWhereCondition:Prisma.DocumentWhereInput;
+        beforeEach(() => {
+            defaultWhereCondition = { "delete_flg": false };
         });
 
-        it('RepositoryのgetAllDocumentsがエラーをthrowした場合、Serviceは「Failed to get all documents in documentService」というエラーをthrowすること', async () => {
-            const repositoryError = new Error('Failed to get all documents in documentService');
-            (mockDocumentRepository.getAllDocuments as jest.Mock).mockRejectedValue(repositoryError);
+        it('フィルタリング条件なしで呼び出した場合、delete_flg: falseの条件でdocumentRepository.getDocumentsを呼び出すこと', async() => {
+            await documentService.getDocuments();
 
-            await expect(documentService.getAllDocuments()).rejects.toThrow('Failed to get all documents in documentService');
-            expect(mockDocumentRepository.getAllDocuments).toHaveBeenCalledWith({ delete_flg: false });
+            expect(mockDocumentRepository.getDocuments).toHaveBeenCalledTimes(1);
+            expect(mockDocumentRepository.getDocuments).toHaveBeenCalledWith(defaultWhereCondition);
+        });
+
+        it('titleを指定した場合、titleを条件としてdocumentRepository.getDocumentsを呼び出すこと', async() => {
+            const params = { title: 'Specific Title' };
+            const whereConditions = Object.assign(defaultWhereCondition, {
+                title: {
+                    contains: params.title
+                }
+            });
+
+            await documentService.getDocuments(params);
+
+            expect(mockDocumentRepository.getDocuments).toHaveBeenCalledTimes(1);
+            expect(mockDocumentRepository.getDocuments).toHaveBeenCalledWith(whereConditions);
+        });
+
+        it('shippingStatusを指定した場合、shippingStatusを条件としてdocumentRepository.getDocumentsを呼び出すこと', async() => {
+            const params = { shippingStatus: 0 };
+            const whereConditions = Object.assign(defaultWhereCondition, params);
+
+            await documentService.getDocuments(params);
+
+            expect(mockDocumentRepository.getDocuments).toHaveBeenCalledTimes(1);
+            expect(mockDocumentRepository.getDocuments).toHaveBeenCalledWith(whereConditions);
+        });
+
+        it('createdAt（createdAtFrom, createdAtTo）を指定した場合、createdAt（createdAtFrom, createdAtTo）を条件としてdocumentRepository.getDocumentsを呼び出すこと', async() => {
+            const fromDate = new Date('2025-04-24T00:00:00.000Z');
+            const toDate = new Date('2025-04-25T23:59:59.999Z');
+            const params = { createdAtFrom: fromDate, createdAtTo: toDate };
+            const whereConditions = Object.assign(defaultWhereCondition, {
+                createdAt: {
+                    gte: params.createdAtFrom,
+                    lte: params.createdAtTo
+                }
+            });
+
+            await documentService.getDocuments(params);
+
+            expect(mockDocumentRepository.getDocuments).toHaveBeenCalledTimes(1);
+            expect(mockDocumentRepository.getDocuments).toHaveBeenCalledWith(whereConditions);
+        });
+
+        it('複数項目を条件とした場合、該当する文書情報のみ返すこと', async() => {
+            const fromDate = new Date('2025-04-24T00:00:00.000Z');
+            const params = { title: 'Specific Title', shippingStatus: 0, createdAtFrom: fromDate };
+            const whereConditions = Object.assign(defaultWhereCondition,
+                {
+                    title: {
+                        contains: params.title
+                    },
+                    shippingStatus: params.shippingStatus,
+                    createdAt: {
+                        gte: params.createdAtFrom,
+                    }
+                });
+            (mockDocumentRepository.getDocuments as jest.Mock).mockResolvedValue(allDocuments[0])
+
+            const result = await documentService.getDocuments(params);
+
+            expect(mockDocumentRepository.getDocuments).toHaveBeenCalledTimes(1);
+            expect(mockDocumentRepository.getDocuments).toHaveBeenCalledWith(whereConditions);
+            expect(result).toEqual(allDocuments[0]);
+        });
+
+        it('フィルタリング条件に一致する文書情報がない場合、空の配列を返すこと', async() => {
+            const params = { title: 'NonExistent' };
+            const whereConditions = Object.assign(defaultWhereCondition, {
+                title: {
+                    contains: params.title
+                }
+            });
+            (mockDocumentRepository.getDocuments as jest.Mock).mockResolvedValue([])
+
+            const result = await documentService.getDocuments(params);
+
+            expect(mockDocumentRepository.getDocuments).toHaveBeenCalledTimes(1);
+            expect(mockDocumentRepository.getDocuments).toHaveBeenCalledWith(whereConditions);
+            expect(result).toEqual([]);
+        });
+
+        it('RepositoryのgetDocumentsがエラーをthrowした場合、Serviceは「Failed to get all documents in documentService」というエラーをthrowすること', async () => {
+            const repositoryError = new Error('Failed to get all documents in documentService');
+            (mockDocumentRepository.getDocuments as jest.Mock).mockRejectedValue(repositoryError);
+
+            await expect(documentService.getDocuments()).rejects.toThrow('Failed to get all documents in documentService');
+            expect(mockDocumentRepository.getDocuments).toHaveBeenCalledWith(defaultWhereCondition);
         });
     });
 

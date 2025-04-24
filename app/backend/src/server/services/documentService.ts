@@ -1,5 +1,6 @@
 import DocumentRepository from "../repositories/documentRepository";
-import { Prisma, Document } from "../../generated/prisma";
+import { Prisma, Document } from "../../generated/prisma"
+import GetDocumentsParams from "../types/GetDocumentParams";
 
 class DocumentService {
     private documentRepository: DocumentRepository;
@@ -24,13 +25,33 @@ class DocumentService {
             throw new Error('Failed to update document in documentService');
         }
     }
-    async getAllDocuments(): Promise<Document[]> {
+    async getDocuments(params: GetDocumentsParams = {}): Promise<Document[]> {
         try {
-            return this.documentRepository.getAllDocuments({
-                    delete_flg: false,
-            });
+            const where: Prisma.DocumentWhereInput = {
+                delete_flg: false,
+            };
+
+            if (params.title) {
+                where.title = {
+                    contains: params.title
+                };
+            }
+            if (params.shippingStatus || params.shippingStatus === 0) {
+                where.shippingStatus = params.shippingStatus;
+            }
+            if (params.createdAtFrom || params.createdAtTo) {
+                where.createdAt = {};
+                if (params.createdAtFrom) {
+                    where.createdAt.gte = params.createdAtFrom;
+                }
+                if (params.createdAtTo) {
+                    where.createdAt.lte = params.createdAtTo;
+                }
+            }
+            return this.documentRepository.getDocuments(where);
+
         } catch (error) {
-            console.log('Error in getAllDocuments', error);
+            console.log('Error in getDocuments', error);
             throw new Error('Failed to get all documents in documentService');
         }
     }

@@ -28,7 +28,7 @@ class DocumentRepository {
         }
     }
 
-    async getAllDocuments(where?: Prisma.DocumentWhereInput): Promise<Document[]> {
+    async getDocuments(where?: Prisma.DocumentWhereInput): Promise<Document[]> {
         try {
             return this.prisma.document.findMany({
                 where: where,

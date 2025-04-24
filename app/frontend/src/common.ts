@@ -14,7 +14,9 @@ const displayShippingStatus = (status: number) => {
       case 1:
         return '発送済み';
       case 2:
-        return '配達完了';
+        return '発送失敗';
+      case 3:
+        return '発送保留'
       default:
         return '不明';
     }

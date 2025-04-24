@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import DocumentService from '../services/documentService';
 import { Prisma } from '../../generated/prisma';
 import { validationResult } from 'express-validator';
-
+import GetDocumentsParams from '../types/GetDocumentParams';
 
 class DocumentController {
     private documentService: DocumentService;
@@ -12,7 +12,22 @@ class DocumentController {
     }
     async getDocuments(req: Request, res: Response): Promise<Response<Document[]>> {
         try {
-            const documents = await this.documentService.getAllDocuments();
+            const { title, shippingStatus, createdAtFrom, createdAtTo } = req.query;
+            const params: GetDocumentsParams = {};
+            if (title) {
+                params.title = title as string;
+            }
+            if (shippingStatus) {
+                params.shippingStatus = parseInt(shippingStatus as string, 10);
+            }
+            if (createdAtFrom) {
+                params.createdAtFrom = new Date(createdAtFrom as string);
+            }
+            if (createdAtTo) {
+                params.createdAtTo = new Date(createdAtTo as string);
+            }
+
+            const documents = await this.documentService.getDocuments(params);
             return res.status(200).json(documents);
         } catch(error) {
             console.error("Error fetching documents:", error);

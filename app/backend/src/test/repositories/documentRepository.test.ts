@@ -13,6 +13,13 @@ const mockPrisma = {
 
 const documentRepository = new DocumentRepository(mockPrisma);
 
+const allDocuments = [
+    { id: 1, title: 'Specific Title', content: 'Content 1', shippingStatus: 0, delete_flg: false, createdAt: new Date('2025-04-23T02:13:08.156Z'), updatedAt: new Date('2025-04-23T02:13:08.156Z'), deletedAt: null},
+    { id: 2, title: 'Other Title', content: 'Content 2', shippingStatus: 1, delete_flg: false, createdAt: new Date('2025-04-25T02:13:08.156Z'), updatedAt: new Date('2025-04-25T02:13:08.156Z'), deletedAt: null },
+    { id: 3, title: 'Specific Title', content: 'Content 3', shippingStatus: 1,  delete_flg: true, createdAt: new Date('2025-05-25T02:13:08.156Z'), updatedAt: new Date('2025-05-25T02:13:08.156Z'), deletedAt: null },
+    { id: 4, title: 'Another Title', content: 'Content 4', shippingStatus: 0,  delete_flg: false, createdAt: new Date('2025-06-25T02:13:08.156Z'), updatedAt: new Date('2025-06-25T02:13:08.156Z'), deletedAt: null },
+] as Document[];
+
 describe('DocumentRepository', () => {
     beforeEach(() => {
         (mockPrisma.document.create as jest.Mock).mockClear();
@@ -20,6 +27,33 @@ describe('DocumentRepository', () => {
         (mockPrisma.document.findMany as jest.Mock).mockClear();
         (mockPrisma.document.findUnique as jest.Mock).mockClear();
         (mockPrisma.document.delete as jest.Mock).mockClear();
+
+        (mockPrisma.document.findMany as jest.Mock).mockImplementation(({ where }) => {
+            if (!where) {
+                return Promise.resolve(allDocuments);
+            }
+            return Promise.resolve(allDocuments.filter(doc => {
+                let matches = true;
+                if (where.title && typeof where.title === 'string' && !doc.title.includes(where.title)) {
+                    matches = false;
+                }
+                if (where.delete_flg !== undefined && doc.delete_flg !== where.delete_flg) {
+                    matches = false;
+                }
+                if (where.shippingStatus !== undefined && doc.shippingStatus !== where.shippingStatus) {
+                    matches = false;
+                }
+                if (where.createdAt && typeof where.createdAt === 'object') {
+                    if (where.createdAt.gte && doc.createdAt < new Date(where.createdAt.gte)) {
+                        matches = false;
+                    }
+                    if (where.createdAt.lte && doc.createdAt > new Date(where.createdAt.lte)) {
+                        matches = false;
+                    }
+                }
+                return matches;
+            }));
+        });
     });
 
     describe('createDocument', () => {
@@ -91,67 +125,72 @@ describe('DocumentRepository', () => {
         });
     });
 
-    describe('getAllDocuments', () => {
-        it('フィルタリング条件なしで呼び出した場合、全ての文書情報を取得し、その配列を返すこと', async() => {
-            const allDocuments = [
-                {
-                    "id": 1,
-                    "createdAt": new Date("2025-04-17T06:12:42.001Z"),
-                    "updatedAt": new Date("2025-04-17T06:12:42.001Z"),
-                    "title": "テスト文書",
-                    "content": "これはテスト文書1の内容です。",
-                    "shippingStatus": 0,
-                    "delete_flg": false,
-                    "deletedAt": null
-                },
-                {
-                    "id": 2,
-                    "createdAt": new Date("2025-04-17T08:21:22.555Z"),
-                    "updatedAt": new Date("2025-04-17T08:21:22.555Z"),
-                    "title": "テスト文書2",
-                    "content": "これはテスト文書2の内容です。",
-                    "shippingStatus": 1,
-                    "delete_flg": false,
-                    "deletedAt": null
-                },
-            ] as Document[];
-            (mockPrisma.document.findMany as jest.Mock).mockResolvedValue(allDocuments);
-
-            const result = await documentRepository.getAllDocuments();
+    describe.only('getDocuments', () => {
+        it('フィルタリング条件なしで呼び出した場合、全ての文書情報を返すこと', async() => {
+            const result = await documentRepository.getDocuments();
 
             expect(mockPrisma.document.findMany).toHaveBeenCalledTimes(1);
             expect(mockPrisma.document.findMany).toHaveBeenCalledWith({ where: undefined });
             expect(result).toEqual(allDocuments);
         });
 
-        it('フィルタリング条件ありで呼び出した場合、その条件で検索された文書情報を取得し、その配列を返すこと', async() => {
-            const activeDocuments = [
-                {
-                    "id": 1,
-                    "createdAt": new Date("2025-04-17T06:12:42.001Z"),
-                    "updatedAt": new Date("2025-04-17T06:12:42.001Z"),
-                    "title": "テスト文書",
-                    "content": "これはテスト文書1の内容です。",
-                    "shippingStatus": 0,
-                    "delete_flg": false,
-                    "deletedAt": new Date("2025-04-23T06:12:42.001Z")
-                },
-            ] as Document[];
+        it('delete_flgでフィルタリングした場合、該当する文書情報のみを返すこと', async() => {
             const whereCondition = { delete_flg: false };
-            (mockPrisma.document.findMany as jest.Mock).mockResolvedValue(activeDocuments);
-
-            const result = await documentRepository.getAllDocuments(whereCondition);
+            const result = await documentRepository.getDocuments(whereCondition);
 
             expect(mockPrisma.document.findMany).toHaveBeenCalledTimes(1);
             expect(mockPrisma.document.findMany).toHaveBeenCalledWith({ where: whereCondition });
-            expect(result).toEqual(activeDocuments);
+            expect(result).toEqual([allDocuments[0], allDocuments[1], allDocuments[3]]);
+        });
+
+        it('titleでフィルタリングした場合、部分一致で該当する文書情報のみを返すこと', async() => {
+            const whereCondition = { title: 'Specific' };
+            const result = await documentRepository.getDocuments(whereCondition);
+
+            expect(mockPrisma.document.findMany).toHaveBeenCalledTimes(1);
+            expect(mockPrisma.document.findMany).toHaveBeenCalledWith({ where: whereCondition });
+            expect(result).toEqual([allDocuments[0], allDocuments[2]]);
+        });
+
+        it('shippingStatusでフィルタリングした場合、該当する文書情報のみを返すこと', async() => {
+            const whereCondition = { shippingStatus: 0 };
+            const result = await documentRepository.getDocuments(whereCondition);
+
+            expect(mockPrisma.document.findMany).toHaveBeenCalledTimes(1);
+            expect(mockPrisma.document.findMany).toHaveBeenCalledWith({ where: whereCondition });
+            expect(result).toEqual([allDocuments[0], allDocuments[3]]);
+        });
+
+        it('createdAtでフィルタリングした場合、範囲絞り込みで該当する文書情報のみを返すこと', async() => {
+            const fromDate = new Date('2025-04-24T00:00:00.000Z');
+            const toDate = new Date('2025-04-25T23:59:59.999Z');
+            const whereCondition = {
+                createdAt:{
+                    gte: fromDate.toISOString(),
+                    lte: toDate.toISOString(),
+                }
+            };
+            const result = await documentRepository.getDocuments(whereCondition);
+
+            expect(mockPrisma.document.findMany).toHaveBeenCalledTimes(1);
+            expect(mockPrisma.document.findMany).toHaveBeenCalledWith({ where: whereCondition });
+            expect(result).toEqual([allDocuments[1]]);
+        });
+
+        it('フィルタリング条件に一致する文書情報がない場合、空の配列を返すこと', async () => {
+            const whereCondition = { title: 'Non Existing Title' };
+            const result = await documentRepository.getDocuments(whereCondition);
+
+            expect(mockPrisma.document.findMany).toHaveBeenCalledTimes(1);
+            expect(mockPrisma.document.findMany).toHaveBeenCalledWith({ where: whereCondition });
+            expect(result).toEqual([]);
         });
 
         it('文書情報取得中のエラーをキャッチし、「Faild to fetch documents」というエラーをthrowすること', async () => {
             const errorMessage = 'Faild to fetch documents';
             (mockPrisma.document.findMany as jest.Mock).mockRejectedValue(new Error(errorMessage));
 
-            await expect(documentRepository.getAllDocuments()).rejects.toThrow(errorMessage);
+            await expect(documentRepository.getDocuments()).rejects.toThrow(errorMessage);
             expect(mockPrisma.document.findMany).toHaveBeenCalledTimes(1);
         });
     });
