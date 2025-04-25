@@ -12,7 +12,7 @@ docker起動
 画面表示  
 http://localhost:3001/  
 
-テスト実行
+テスト実行  
 ```docker exec -it express-api sh ```  
 ```npm run test```  
 
