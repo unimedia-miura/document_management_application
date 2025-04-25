@@ -10,4 +10,8 @@ docker起動
 ```npx ts-node prisma/seed.ts```
 
 画面表示  
-http://localhost:3001/
+http://localhost:3001/  
+
+テスト実行
+```docker exec -it express-api sh ```  
+```npm run test```  

@@ -1,22 +1,23 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Document } from '../types/Document';
-
+import { Document } from '../../types/Document';
+import { apiClient } from '../../utils/apiClient';
 export const EditDocument = () => {
   const params = useParams();
   const navigate = useNavigate();
   const [document, setDocument] = useState<Document>();
 
-	useEffect(() => {
-    fetch('/api/document/' + params.id)
-					.then((res) => res.json())
-					.then((data) => {
-						setDocument(data);
-					})
-					.catch((err) => {
-						console.log(err);
-					});
-		}, [params.id]);
+  const fetchDocument = async () => {
+      try {
+        const data = await apiClient('/api/document/' + params.id);
+        setDocument(data);
+      } catch(err) {
+        console.log(err);
+      }
+    };
+    useEffect(() => {
+      fetchDocument();
+    }, [params.id]);
 
     if (!document) {
 			return (
@@ -31,19 +32,11 @@ export const EditDocument = () => {
 
   const handleSave = async () => {
     try {
-      const response = await fetch(`/api/document/${document.id}`, {
+      await apiClient(`/api/document/${document.id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(document),
       });
-
-      if (response.ok) {
-        navigate(`/document/${document.id}`);
-      } else {
-        console.error('Failed to update document');
-      }
+      navigate(`/document/${document.id}`);
     } catch (error) {
       console.error('Error:', error);
     }

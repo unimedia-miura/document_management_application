@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { apiClient } from '../../utils/apiClient';
 
 export const NewDocumentForm = () => {
 	const [title, setTitle] = useState('');
@@ -13,19 +14,11 @@ export const NewDocumentForm = () => {
     const newDocument = { title, content, shippingStatus };
 
     try {
-      const response = await fetch('/api/document', {
+      await apiClient('/api/document', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(newDocument),
-      });
-
-      if (response.ok) {
-        navigate('/');
-      } else {
-        console.error('Failed to create document');
-      }
+      })
+      navigate('/documents');
     } catch (error) {
       console.error('Error:', error);
     }

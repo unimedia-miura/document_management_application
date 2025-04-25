@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { formatDate, displayShippingStatus } from '../common';
-import { Document } from '../types/Document';
-import DocumentSearchParams from '../types/DocumentSearchParams';
+import { formatDate, displayShippingStatus } from '../../common';
+import { Document } from '../../types/Document';
+import DocumentSearchParams from '../../types/DocumentSearchParams';
+import { apiClient } from '../../utils/apiClient';
 
 export const List = () => {
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -13,7 +14,7 @@ export const List = () => {
     createdAtTo: '',
   });
 
-const fetchDocuments = () => {
+const fetchDocuments = async () => {
   const queryParams = new URLSearchParams();
 
   if (searchParams.title) queryParams.append('title', searchParams.title);
@@ -21,14 +22,12 @@ const fetchDocuments = () => {
   if (searchParams.createdAtFrom) queryParams.append('createdAtFrom', searchParams.createdAtFrom);
   if (searchParams.createdAtTo) queryParams.append('createdAtTo', searchParams.createdAtTo);
 
-  fetch(`/api/documents?${queryParams.toString()}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setDocuments(data);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+  try {
+    const data = await apiClient(`/api/document?${queryParams.toString()}`);
+      setDocuments(data);
+  } catch(err) {
+    console.log(err);
+  }
 }
 
   useEffect(() => {

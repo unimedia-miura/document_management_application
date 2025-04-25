@@ -1,65 +1,60 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { formatDate } from '../common';
-import { Document } from '../types/Document';
+import { formatDate } from '../../common';
+import { Document } from '../../types/Document';
+import { apiClient } from '../../utils/apiClient';
 
 export const Detail = () => {
     const params = useParams();
-		const navigate = useNavigate();
-		const [document, setDocument] = useState<Document>();
-			useEffect(() => {
-				fetch('/api/document/' + params.id)
-					.then((res) => res.json())
-					.then((data) => {
-						setDocument(data);
-					})
-					.catch((err) => {
-						console.log(err);
-					});
-			}, [params.id]);
+	const navigate = useNavigate();
+	const [document, setDocument] = useState<Document>();
 
-			const displayShippingStatus = (status: number) => {
-				switch (status) {
-					case 0:
-						return '未発送';
-					case 1:
-						return '発送済み';
-					case 2:
-						return '配達完了';
-					default:
-						return '不明';
-				}
-			};
-
-		if (!document) {
-			return (
-				<div className="container mx-auto p-4">
-					<h1 className="text-xl font-bold mb-4">文書詳細</h1>
-					<div className="bg-white shadow-md rounded-md p-6">
-						<h2>詳細情報が取得できませんでした。</h2>
-					</div>
-				</div>
-			)
+	const fetchDocument = async () => {
+		try {
+			const data = await apiClient('/api/document/' + params.id);
+			setDocument(data);
+		} catch(err) {
+			console.log(err);
 		}
+	};
+	useEffect(() => {
+		fetchDocument();
+	}, [params.id]);
 
-		const handleDelete = async () => {
-			try {
-				const response = await fetch(`/api/document/${document.id}`, {
-					method: 'DELETE',
-					headers: {
-					'Content-Type': 'application/json',
-					},
-					body: JSON.stringify(document),
-				});
-				if (response.ok) {
-					navigate(`/`);
-				} else {
-					console.error('Failed to delete document');
-				}
-				} catch (error) {
-				console.error('Error:', error);
-				}
-			};
+	const displayShippingStatus = (status: number) => {
+		switch (status) {
+			case 0:
+				return '未発送';
+			case 1:
+				return '発送済み';
+			case 2:
+				return '配達完了';
+			default:
+				return '不明';
+		}
+	};
+
+	if (!document) {
+		return (
+			<div className="container mx-auto p-4">
+				<h1 className="text-xl font-bold mb-4">文書詳細</h1>
+				<div className="bg-white shadow-md rounded-md p-6">
+					<h2>詳細情報が取得できませんでした。</h2>
+				</div>
+			</div>
+		)
+	}
+
+	const handleDelete = async () => {
+		try {
+			await apiClient(`/api/document/${document.id}`, {
+				method: 'DELETE',
+			});
+			navigate('/documents');
+			} catch (error) {
+			console.error('Error:', error);
+			}
+		};
 
     return (
 	<div className="container mx-auto p-4">
