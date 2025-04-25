@@ -1,13 +1,27 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { formatDate, displayShippingStatus } from '../common';
 import { Document } from '../types/Document';
+import DocumentSearchParams from '../types/DocumentSearchParams';
 
 export const List = () => {
   const [documents, setDocuments] = useState<Document[]>([]);
+  const [searchParams, setSearchParams] = useState<DocumentSearchParams>({
+    title: '',
+    shippingStatus: '',
+    createdAtFrom: '',
+    createdAtTo: '',
+  });
 
-  useEffect(() => {
-    fetch('/api/documents')
+const fetchDocuments = () => {
+  const queryParams = new URLSearchParams();
+
+  if (searchParams.title) queryParams.append('title', searchParams.title);
+  if (searchParams.shippingStatus) queryParams.append('shippingStatus', searchParams.shippingStatus);
+  if (searchParams.createdAtFrom) queryParams.append('createdAtFrom', searchParams.createdAtFrom);
+  if (searchParams.createdAtTo) queryParams.append('createdAtTo', searchParams.createdAtTo);
+
+  fetch(`/api/documents?${queryParams.toString()}`)
       .then((res) => res.json())
       .then((data) => {
         setDocuments(data);
@@ -15,11 +29,98 @@ export const List = () => {
       .catch((err) => {
         console.log(err);
       });
+}
+
+  useEffect(() => {
+    fetchDocuments();
   }, []);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    fetchDocuments();
+  }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setSearchParams((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  }
+
 
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">文書一覧</h1>
+      <form onSubmit={handleSearch} className="mb-6 bg-white p-6 rounded-lg shadow-md space-y-4">
+        <div>
+          <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+            文書名
+          </label>
+          <input
+            type="text"
+            id="title"
+            name="title"
+            value={searchParams.title}
+            onChange={handleInputChange}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            placeholder="文書名を入力"
+          />
+        </div>
+        <div>
+          <label htmlFor="shippingStatus" className="block text-sm font-medium text-gray-700">
+            発送ステータス
+          </label>
+          <select
+            id="shippingStatus"
+            name="shippingStatus"
+            value={searchParams.shippingStatus}
+            onChange={handleInputChange}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          >
+            <option value="">すべて</option>
+            <option value="0">未発送</option>
+            <option value="1">発送済み</option>
+            <option value="2">配達完了</option>
+          </select>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="createdAtFrom" className="block text-sm font-medium text-gray-700">
+              作成日 (From)
+            </label>
+            <input
+              type="date"
+              id="createdAtFrom"
+              name="createdAtFrom"
+              value={searchParams.createdAtFrom}
+              onChange={handleInputChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            />
+          </div>
+          <div>
+            <label htmlFor="createdAtTo" className="block text-sm font-medium text-gray-700">
+              作成日 (To)
+            </label>
+            <input
+              type="date"
+              id="createdAtTo"
+              name="createdAtTo"
+              value={searchParams.createdAtTo}
+              onChange={handleInputChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            />
+          </div>
+        </div>
+        <div className='flex justify-end'>
+          <button
+            type="submit"
+            className="rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+          >
+            検索
+          </button>
+        </div>
+      </form>
       <table className="min-w-full bg-white border border-gray-200">
         <thead>
           <tr>

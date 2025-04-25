@@ -41,7 +41,7 @@ class DocumentController {
             return res.status(400).json({ errors: errors.array() });
         }
         try {
-            const id = parseInt(req.params.id); // パスパラメータから ID を取得
+            const id = parseInt(req.params.id);
             if (isNaN(id)) {
                 return res.status(400).json({ error: 'Invalid ID' });
             }
