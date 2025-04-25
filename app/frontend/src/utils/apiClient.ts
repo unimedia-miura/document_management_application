@@ -20,7 +20,7 @@ export const apiClient = async (
   if (!response.ok) {
     if (response.status === 401) {
       // トークンが無効な場合はログイン画面にリダイレクト
-      window.location.href = '/login';
+      window.location.href = '/user/login';
     }
     const errorData = await response.json();
     throw new Error(errorData.error || 'APIリクエストに失敗しました');

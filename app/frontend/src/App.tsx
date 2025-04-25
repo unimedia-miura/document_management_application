@@ -1,5 +1,5 @@
-import { Children, useState } from 'react';
-import { BrowserRouter, Link, Route, Routes } from 'react-router-dom';
+import { useState } from 'react';
+import { BrowserRouter, Link, Route, Routes, useLocation } from 'react-router-dom';
 
 import { List } from './components/document/List';
 import { Detail } from './components/document/Detail';
@@ -14,6 +14,22 @@ const App = () => {
 
   const toggleSettingsMenu = () => {
     setIsSettingsOpen((prev) => !prev);
+  };
+
+  const NavLink = ({ to, children }: { to: string; children: React.ReactNode }) => {
+    const location = useLocation();
+    const isActive = location.pathname === to;
+
+    return (
+      <Link
+        to={to}
+        className={`rounded-md px-3 py-2 text-sm font-medium ${
+          isActive ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+        }`}
+      >
+        {children}
+      </Link>
+    );
   };
 
   return (
@@ -32,19 +48,8 @@ const App = () => {
               </div>
               <div className="hidden sm:ml-6 sm:block">
                 <div className="flex space-x-4">
-                  <Link
-                    to="/documents"
-                    className="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white"
-                    aria-current="page"
-                  >
-                    一覧
-                  </Link>
-                  <Link
-                    to="/new"
-                    className="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white"
-                  >
-                    新規作成
-                  </Link>
+                  <NavLink to="/documents">一覧</NavLink>
+                  <NavLink to="/new">新規作成</NavLink>
                 </div>
               </div>
             </div>
@@ -73,7 +78,7 @@ const App = () => {
                   </Link>
                   <button
                     onClick={() => {
-                      sessionStorage.removeItem('accessToken');
+                      localStorage.removeItem('accessToken');
                       window.location.href = '/';
                     }}
                     className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"

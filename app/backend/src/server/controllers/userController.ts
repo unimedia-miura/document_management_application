@@ -37,7 +37,7 @@ class UserController {
         try {
             const user = await this.userService.findUser(email);
             if (!user) {
-                return res.status(401).json({ error: 'メールアドレスまたはパスワードが間違っています' });
+                return res.status(401).json({ error: 'メールアドレスが間違っています' });
             }
 
             const isPasswordValid = await bcrypt.compare(password, user.password);

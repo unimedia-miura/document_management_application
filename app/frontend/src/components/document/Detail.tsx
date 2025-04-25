@@ -72,11 +72,11 @@ export const Detail = () => {
           <span>更新日: {formatDate(document.updatedAt)}</span>
         </div>
       </div>
-			<div className='mt-4 flex space-x-4'>
+			<div className='mt-4 flex justify-end space-x-4'>
 				<Link to="/" className='inline-block mt-4 text-blue-500 hover:underline'>一覧に戻る</Link>
 				<button
 					onClick={() => navigate(`/document/${document.id}/edit`)}
-					className='text-white bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-md'
+					className='rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'
 				>
 					編集
 				</button>
