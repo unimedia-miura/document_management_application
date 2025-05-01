@@ -31,16 +31,19 @@ http://localhost:3001/
 
 詳細画面
 
-<img width="762" alt="スクリーンショット 2025-04-25 16 39 48" src="https://github.com/user-attachments/assets/09fbac6b-fdd3-4a89-876f-2643628286c0" />
+<img width="812" alt="スクリーンショット 2025-04-25 17 21 17" src="https://github.com/user-attachments/assets/e63f4191-ccf5-48d7-a9b7-6a4f5d303dc3" />
+
 
 編集画面
 
-<img width="748" alt="スクリーンショット 2025-04-25 16 42 58" src="https://github.com/user-attachments/assets/520238f2-6b36-4e10-804b-b8d9a4a28240" />
+<img width="829" alt="スクリーンショット 2025-04-25 17 22 09" src="https://github.com/user-attachments/assets/92510557-39da-4195-800d-8886133690cb" />
+
 
 
 新規登録画面
 
-<img width="755" alt="スクリーンショット 2025-04-25 16 39 55" src="https://github.com/user-attachments/assets/2b879f78-1f95-486b-8830-e520d0c8e511" />
+<img width="827" alt="スクリーンショット 2025-04-25 17 21 08" src="https://github.com/user-attachments/assets/e35f4af2-7c67-4eb7-9c88-c6733909ae58" />
+
 
 ユーザー作成画面
 
