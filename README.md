@@ -7,10 +7,14 @@ docker起動
 
 初回時のみ実行（初期ユーザー作成）  
 ```docker exec -it express-api sh ```  
-```npx ts-node prisma/seed.ts```
+```npx ts-node prisma/seed.ts```  
+初期ユーザーログイン情報
+メールアドレス: test@xyz.com  
+パスワード: password  
 
 画面表示  
 http://localhost:3001/  
+
 
 テスト実行  
 ```docker exec -it express-api sh ```  
